@@ -16,6 +16,8 @@ class StudentsController
                     return $this->edit();
                 case "delete":
                     return $this->delete();
+                case "save":
+                    return $this->save();
             }
         }
 
@@ -49,10 +51,10 @@ class StudentsController
             }
             include("templates/student/create.php");
         }
-        function edit(){
-
+        function edit(?int $id=null){
 
           $db_connection = mysqli_connect("localhost", "root", "", "database");
+          $student_id = $id??$_GET['student_id'];
           $query = mysqli_query($db_connection,
 "SELECT
             students.id,
@@ -62,9 +64,41 @@ class StudentsController
       FROM `database`.students 
           JOIN `database`.users 
           ON `database`.`users`.`id` = `database`.`students`.`user_id`
-          WHERE `database`.students. `id` = '{$_GET['student_id']}' ");
+          WHERE `database`.students. `id` = {$student_id}");
           $student = mysqli_fetch_assoc($query);
           include("templates/student/edit.php");
+        }
+
+        function save()
+        {
+            print_r($_POST);
+
+            $db_connection = mysqli_connect("localhost", "root", "", "database");
+
+            if(isset($_POST["id"])&&
+                isset($_POST["name"])&&
+                isset($_POST["surname"])
+            ){
+                $sql = "
+                UPDATE `database`.students 
+                        
+                SET 
+                    `name` = '{$_POST["name"]}',
+                    `surname` = '{$_POST["surname"]}'    
+                WHERE 
+                    `database`.`students`.`id` = '{$_POST['id']}'    
+             ";
+
+               mysqli_query($db_connection, $sql);
+               $result = mysqli_affected_rows($db_connection);
+                if ($result==1){
+                    return $this->index();
+                }
+            }
+
+                return $this->edit($_POST['id']);
+
+
         }
         function delete(){}
 }
